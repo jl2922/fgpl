@@ -1,0 +1,2 @@
+# gpl
+Generic Parallel Library
