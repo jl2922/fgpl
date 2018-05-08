@@ -16,7 +16,7 @@ void broadcast(T& t) {
     const std::string& serialized = hps::to_string(t);
     printf("serialized 0: %u\n", serialized[0]);
     buffer = const_cast<char*>(serialized.data());
-    printf("buffer 0: %u\n", serialized[0]);
+    printf("buffer 0: %u\n", buffer[0]);
     count = serialized.size();
   }
 
