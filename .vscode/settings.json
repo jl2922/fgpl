@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "type_traits": "cpp",
+    "hash_map": "cpp",
+    "hash_set": "cpp",
+    "chrono": "cpp",
+    "ratio": "cpp",
+    "system_error": "cpp"
+  }
+}
