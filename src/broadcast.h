@@ -31,6 +31,7 @@ void broadcast(T& t) {
   MPI_Bcast(buffer_ptr, count, MPI_CHAR, 0, MPI_COMM_WORLD);
 
   if (!is_master) {
+    printf("buffer 0: %u\n", buffer[0]);
     hps::from_char_array(buffer, t);
     delete[] buffer;
   }
