@@ -14,7 +14,7 @@ void broadcast(T& t) {
   const bool is_master = internal::MpiUtil::is_master();
 
   if (is_master) {
-    serialized = hps::to_string(t, serialized);
+    hps::to_string(t, serialized);
     count = serialized.size();
     printf("serialized 0: %u\n", serialized[0]);
     buffer = const_cast<char*>(serialized.data());
