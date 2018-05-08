@@ -14,8 +14,8 @@ void broadcast(T& t) {
 
   if (is_master) {
     const std::string& serialized = hps::to_string(t);
+    printf("buffer 0: %u\n", serialized[0]);
     buffer = const_cast<char*>(serialized.data());
-
     count = serialized.size();
   }
 
