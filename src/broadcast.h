@@ -10,10 +10,11 @@ template <class T>
 void broadcast(T& t) {
   size_t count;
   char* buffer;
+  std::string serialized;
   const bool is_master = internal::MpiUtil::is_master();
 
   if (is_master) {
-    const std::string& serialized = hps::to_string(t);
+    serialized = hps::to_string(t, serialized);
     count = serialized.size();
     printf("serialized 0: %u\n", serialized[0]);
     buffer = const_cast<char*>(serialized.data());
