@@ -19,20 +19,11 @@ class MpiUtil {
   int proc_id;
 
   MpiUtil() {
-    int initialized;
-    MPI_Initialized(&initialized);
-    if (!initialized) MPI_Init(nullptr, nullptr);
     MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_id);
   }
 
-  ~MpiUtil() {
-    int finalized;
-    MPI_Finalized(&finalized);
-    if (!finalized) MPI_Finalize();
-  }
-
-  MpiUtil get_instance() {
+  static MpiUtil get_instance() {
     static MpiUtil instance;
     return instance;
   }
