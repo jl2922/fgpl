@@ -1,2 +1,2 @@
-# gpl
-Generic Parallel Library
+# FGPL
+Fast Generic Parallel Library
