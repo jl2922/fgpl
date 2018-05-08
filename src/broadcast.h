@@ -30,6 +30,7 @@ void broadcast(T& t) {
     buffer_ptr += TRUNK_SIZE;
     count -= TRUNK_SIZE;
   }
+  printf("buffer 0: %u\n", buffer[0]);
   MPI_Bcast(buffer_ptr, count, MPI_CHAR, 0, MPI_COMM_WORLD);
 
   printf("buffer 0: %u\n", buffer[0]);
