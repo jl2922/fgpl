@@ -15,6 +15,7 @@ void broadcast(T& t) {
   if (is_master) {
     const std::string& serialized = hps::to_string(t);
     buffer = const_cast<char*>(serialized.data());
+
     count = serialized.size();
   }
 
@@ -30,8 +31,8 @@ void broadcast(T& t) {
   }
   MPI_Bcast(buffer_ptr, count, MPI_CHAR, 0, MPI_COMM_WORLD);
 
+  printf("buffer 0: %u\n", buffer[0]);
   if (!is_master) {
-    printf("buffer 0: %u\n", buffer[0]);
     hps::from_char_array(buffer, t);
     delete[] buffer;
   }
