@@ -1,6 +1,6 @@
-[submodule "lib/hps"]
-	path = lib/hps
+[submodule "vendor/hps"]
+	path = vendor/hps
 	url = https://github.com/jl2922/hps.git
-[submodule "lib/googletest"]
-	path = lib/googletest
+[submodule "vendor/googletest"]
+	path = vendor/googletest
 	url = https://github.com/google/googletest.git
