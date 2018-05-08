@@ -24,6 +24,16 @@
     "unordered_map": "cpp",
     "unordered_set": "cpp",
     "utility": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "__functional_base": "cpp",
+    "__functional_base_03": "cpp",
+    "__tuple": "cpp",
+    "forward_list": "cpp",
+    "functional": "cpp",
+    "limits": "cpp",
+    "memory": "cpp",
+    "tuple": "cpp",
+    "__locale": "cpp",
+    "__hash": "cpp"
   }
 }
