@@ -23,7 +23,9 @@ void broadcast(T& t) {
   MPI_Bcast(&count, 1, internal::MpiType<size_t>::value, 0, MPI_COMM_WORLD);
   printf("cnt %zu\n", count);
   if (!is_master) buffer = new char[count];
+  printf("buffer 0: %u\n", buffer[0]);
   char* buffer_ptr = buffer;
+  printf("buffer 0: %u\n", buffer[0]);
   const int TRUNK_SIZE = 1 << 30;
   while (count > TRUNK_SIZE) {
     MPI_Bcast(buffer_ptr, TRUNK_SIZE, MPI_CHAR, 0, MPI_COMM_WORLD);
