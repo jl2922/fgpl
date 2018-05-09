@@ -13,6 +13,8 @@ class HashEntry {
  public:
   K key;
 
+  size_t hash_value;
+
   V value;
 
   bool filled;
@@ -26,39 +28,17 @@ class HashEntry {
     filled = true;
   }
 
-  bool key_equal(const K& key, const size_t hash_value) const {
+  bool key_equals(const K& key, const size_t hash_value) const {
     return this->hash_value == hash_value && this->key == key;
   }
-
-  size_t get_hash_value() const { return hash_value; }
-
- private:
-  size_t hash_value;
 };
 
 template <class K, class V, class H>
-class HashEntry<K, V, H, typename std::enable_if<std::is_arithmetic<K>::value, void>::type> {
- public:
-  K key;
+class HashEntry<K, V, H, typename std::enable_if<std::is_arithmetic<K>::value, void>::type>::
+    key_equals(const K& key, const size_t) {
+  return this->key == key;
+}
 
-  V value;
-
-  bool filled;
-
-  H hasher;
-
-  HashEntry() : filled(false){};
-
-  void fill(const K& key, const size_t, const V& value) {
-    this->key = key;
-    this->value = value;
-    filled = true;
-  }
-
-  bool key_equal(const K& key, const size_t) const { return this->key == key; }
-
-  size_t get_hash_value() const { return hasher(key); }
-};
 }  // namespace hash
 }  // namespace internal
 }  // namespace fgpl

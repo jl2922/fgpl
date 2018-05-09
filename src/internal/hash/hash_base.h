@@ -9,7 +9,7 @@ namespace hash {
 
 // A linear probing hash container base.
 template <class K, class V, class H = std::hash<K>>
-class BaseHashContainer {
+class HashBase {
  public:
   constexpr static float DEFAULT_MAX_LOAD_FACTOR = 0.7;
 
@@ -19,7 +19,7 @@ class BaseHashContainer {
 
   float max_load_factor;
 
-  BaseHashContainer();
+  HashBase();
 
   size_t get_n_keys() const { return n_keys; }
 
@@ -55,7 +55,7 @@ class BaseHashContainer {
 };
 
 template <class K, class V, class H>
-BaseHashContainer<K, V, H>::BaseHashContainer() {
+HashBase<K, V, H>::HashBase() {
   n_keys = 0;
   n_buckets = N_INITIAL_BUCKETS;
   buckets.resize(N_INITIAL_BUCKETS);
@@ -64,19 +64,19 @@ BaseHashContainer<K, V, H>::BaseHashContainer() {
 }
 
 template <class K, class V, class H>
-void BaseHashContainer<K, V, H>::reserve(const size_t n_keys_min) {
+void HashBase<K, V, H>::reserve(const size_t n_keys_min) {
   reserve_n_buckets(n_keys_min / max_load_factor);
 }
 
 template <class K, class V, class H>
-void BaseHashContainer<K, V, H>::reserve_n_buckets(const size_t n_buckets_min) {
+void HashBase<K, V, H>::reserve_n_buckets(const size_t n_buckets_min) {
   if (n_buckets_min <= n_buckets) return;
   const size_t n_rehash_buckets = get_n_rehash_buckets(n_buckets_min);
   rehash(n_rehash_buckets);
 }
 
 template <class K, class V, class H>
-size_t BaseHashContainer<K, V, H>::get_n_rehash_buckets(const size_t n_buckets_min) {
+size_t HashBase<K, V, H>::get_n_rehash_buckets(const size_t n_buckets_min) {
   constexpr size_t PRIMES[] = {
       11, 17, 29, 47, 79, 127, 211, 337, 547, 887, 1433, 2311, 3739, 6053, 9791, 15859};
   constexpr size_t N_PRIMES = sizeof(PRIMES) / sizeof(size_t);
@@ -104,11 +104,11 @@ size_t BaseHashContainer<K, V, H>::get_n_rehash_buckets(const size_t n_buckets_m
 }
 
 template <class K, class V, class H>
-void BaseHashContainer<K, V, H>::rehash(const size_t n_rehash_buckets) {
+void HashBase<K, V, H>::rehash(const size_t n_rehash_buckets) {
   std::vector<HashEntry<K, V>> rehash_buckets(n_rehash_buckets);
   for (size_t i = 0; i < n_buckets; i++) {
     if (!buckets.at(i).filled) continue;
-    const size_t hash_value = buckets.at(i).get_hash_value();
+    const size_t hash_value = buckets.at(i).hash_value;
     size_t rehash_bucket_id = hash_value % n_rehash_buckets;
     size_t n_probes = 0;
     while (n_probes < n_rehash_buckets) {
@@ -126,7 +126,7 @@ void BaseHashContainer<K, V, H>::rehash(const size_t n_rehash_buckets) {
 }
 
 template <class K, class V, class H>
-void BaseHashContainer<K, V, H>::check_balance(const size_t n_probes) {
+void HashBase<K, V, H>::check_balance(const size_t n_probes) {
   if (n_probes > MAX_N_PROBES) {
     if (n_keys < n_buckets / 4 && !unbalanced_warned) {
       fprintf(stderr, "Warning: Hash container is unbalanced!\n");
@@ -140,7 +140,7 @@ void BaseHashContainer<K, V, H>::check_balance(const size_t n_probes) {
 }
 
 template <class K, class V, class H>
-void BaseHashContainer<K, V, H>::unset(const K& key, const size_t hash_value) {
+void HashBase<K, V, H>::unset(const K& key, const size_t hash_value) {
   size_t bucket_id = hash_value % n_buckets;
   size_t n_probes = 0;
   while (n_probes < n_buckets) {
@@ -152,7 +152,7 @@ void BaseHashContainer<K, V, H>::unset(const K& key, const size_t hash_value) {
       // Find a valid entry to fill the spot if exists.
       size_t swap_bucket_id = (bucket_id + 1) % n_buckets;
       while (buckets.at(swap_bucket_id).filled) {
-        const size_t swap_origin_id = buckets.at(swap_bucket_id).get_hash_value() % n_buckets;
+        const size_t swap_origin_id = buckets.at(swap_bucket_id).hash_value % n_buckets;
         if ((swap_bucket_id < swap_origin_id && swap_origin_id <= bucket_id) ||
             (swap_origin_id <= bucket_id && bucket_id < swap_bucket_id) ||
             (bucket_id < swap_bucket_id && swap_bucket_id < swap_origin_id)) {
@@ -171,7 +171,7 @@ void BaseHashContainer<K, V, H>::unset(const K& key, const size_t hash_value) {
 }
 
 template <class K, class V, class H>
-bool BaseHashContainer<K, V, H>::has(const K& key, const size_t hash_value) const {
+bool HashBase<K, V, H>::has(const K& key, const size_t hash_value) const {
   size_t bucket_id = hash_value % n_buckets;
   size_t n_probes = 0;
   while (n_probes < n_buckets) {
@@ -188,7 +188,7 @@ bool BaseHashContainer<K, V, H>::has(const K& key, const size_t hash_value) cons
 }
 
 template <class K, class V, class H>
-void BaseHashContainer<K, V, H>::clear() {
+void HashBase<K, V, H>::clear() {
   if (n_keys == 0) return;
   for (size_t i = 0; i < n_buckets; i++) {
     buckets.at(i).filled = false;
@@ -197,7 +197,7 @@ void BaseHashContainer<K, V, H>::clear() {
 }
 
 template <class K, class V, class H>
-void BaseHashContainer<K, V, H>::clear_and_shrink() {
+void HashBase<K, V, H>::clear_and_shrink() {
   buckets.resize(N_INITIAL_BUCKETS);
   n_buckets = N_INITIAL_BUCKETS;
   clear();
