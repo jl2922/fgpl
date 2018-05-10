@@ -34,6 +34,8 @@
     "memory": "cpp",
     "tuple": "cpp",
     "__locale": "cpp",
-    "__hash": "cpp"
+    "__hash": "cpp",
+    "*.tcc": "cpp",
+    "istream": "cpp"
   }
 }

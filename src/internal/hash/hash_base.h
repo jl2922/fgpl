@@ -177,7 +177,7 @@ bool HashBase<K, V, H>::has(const K& key, const size_t hash_value) const {
   while (n_probes < n_buckets) {
     if (!buckets.at(bucket_id).filled) {
       return false;
-    } else if (buckets.at(bucket_id).key_equals(key, hash_value) {
+    } else if (buckets.at(bucket_id).key_equals(key, hash_value)) {
       return true;
     } else {
       n_probes++;

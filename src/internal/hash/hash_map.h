@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <vector>
-#include "../reducer.h"
 #include "hash_base.h"
 
 namespace fgpl {
@@ -17,9 +16,9 @@ class HashMap : public HashBase<K, V, H> {
       const K& key,
       const size_t hash_value,
       const V& value,
-      const std::function<void(V&, const V&)>& reducer = hpmr::Reducer<V>::overwrite);
+      const std::function<void(V&, const V&)>& reducer);
 
-  V get(const K& key, const size_t hash_value, const V& default_value = V()) const;
+  V get(const K& key, const size_t hash_value, const V& default_value) const;
 
   void for_each(const std::function<void(const K& key, const size_t hash_value, const V& value)>&
                     handler) const;

@@ -32,13 +32,6 @@ class HashEntry {
     return this->hash_value == hash_value && this->key == key;
   }
 };
-
-template <class K, class V, class H>
-class HashEntry<K, V, H, typename std::enable_if<std::is_arithmetic<K>::value, void>::type>::
-    key_equals(const K& key, const size_t) {
-  return this->key == key;
-}
-
 }  // namespace hash
 }  // namespace internal
 }  // namespace fgpl
