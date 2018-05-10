@@ -32,6 +32,29 @@ class HashEntry {
     return this->hash_value == hash_value && this->key == key;
   }
 };
+
+// For hash set.
+template <class K>
+class HashEntry<K, void> {
+ public:
+  K key;
+
+  size_t hash_value;
+
+  bool filled;
+
+  HashEntry() : filled(false){};
+
+  void fill(const K& key, const size_t hash_value) {
+    this->key = key;
+    this->hash_value = hash_value;
+    filled = true;
+  }
+
+  bool key_equals(const K& key, const size_t hash_value) const {
+    return this->hash_value == hash_value && this->key == key;
+  }
+};
 }  // namespace hash
 }  // namespace internal
 }  // namespace fgpl
