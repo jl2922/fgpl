@@ -9,7 +9,7 @@ namespace fgpl {
 template <class T>
 void broadcast(T& t) {
   size_t count;
-  char* buffer;
+  char* buffer = nullptr;
   std::string serialized;
   const bool is_master = internal::MpiUtil::is_master();
 
