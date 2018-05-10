@@ -8,7 +8,7 @@ namespace fgpl {
 namespace internal {
 namespace hash {
 
-template <class K, class V, class H = std::hash<K>, class Enable = void>
+template <class K, class V>
 class HashEntry {
  public:
   K key;
