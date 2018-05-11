@@ -15,9 +15,10 @@ ifneq ($(wildcard $(LOCAL_MAKEFILE)),)
 endif
 
 # Link Google Perf if available.
-GPERFTOOLS_DIR := $(TOOLS_DIR)/gperftools
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
+	TOOLS_DIR := $(HOME)/tools
+	GPERFTOOLS_DIR := $(TOOLS_DIR)/gperftools
 	ifneq ($(wildcard $(GPERFTOOLS_DIR)),)
 		LDLIBS := -L $(GPERFTOOLS_DIR)/lib $(LDLIBS) -ltcmalloc
 	endif

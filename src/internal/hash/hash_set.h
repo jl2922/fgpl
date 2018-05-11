@@ -14,7 +14,8 @@ class HashSet : public HashBase<K, void, H> {
  public:
   void set(const K& key, const size_t hash_value);
 
-  void for_each(const std::function<void(const K& key, const size_t hash_value)>& handler) const;
+  void for_each(
+      const std::function<void(const K& key, const size_t hash_value)>& handler) const;
 
   using HashBase<K, void, H>::max_load_factor;
 
