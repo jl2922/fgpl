@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
-TEST(RangeTest, ForEachTest) {
-  const long long N_KEYS = 100000;
+TEST(DistRangeTest, ForEachTest) {
+  const long long N_KEYS = 1000;
   fgpl::DistRange<long long> range(0, N_KEYS);
   long long sum_local = 0;
   const auto& handler = [&](const long long i) {

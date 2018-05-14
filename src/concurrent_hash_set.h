@@ -19,6 +19,14 @@ class ConcurrentHashSet : public internal::hash::ConcurrentHashSet<K, H> {
 
  private:
   H hasher;
+
+  using internal::hash::ConcurrentHashSet<K, H>::set;
+
+  using internal::hash::ConcurrentHashSet<K, H>::async_set;
+
+  using internal::hash::ConcurrentHashSet<K, H>::unset;
+
+  using internal::hash::ConcurrentHashSet<K, H>::has;
 };
 
 }  // namespace fgpl

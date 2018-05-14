@@ -1,16 +1,17 @@
 #pragma once
 
+#include "../../../vendor/hps/src/hps.h"
+#include "../../gather.h"
 #include "../mpi_util.h"
 #include "concurrent_hash_set.h"
 #include "dist_hash_base.h"
-#include "hash_set.h"
 
 namespace fgpl {
 namespace internal {
 namespace hash {
 
 template <class K, class H = std::hash<K>>
-class DistHashSet : public DistHashBase<K, ConcurrentHashSet<K, DistHasher<K, H>>, H> {
+class DistHashSet : public DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H> {
  public:
   void async_set(const K& key, const size_t hash_value);
 
@@ -19,15 +20,27 @@ class DistHashSet : public DistHashBase<K, ConcurrentHashSet<K, DistHasher<K, H>
   void for_each_serial(const std::function<void(const K& key, const size_t hash_value)>& handler);
 
  private:
-  H hasher;
-
   DistHasher<K, H> dist_hasher;
+
+  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::hasher;
+
+  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::n_procs;
+
+  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::proc_id;
+
+  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::local_data;
+
+  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::remote_data;
+
+  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::generate_shuffled_procs;
+
+  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::get_shuffled_id;
 };
 
 template <class K, class H>
 void DistHashSet<K, H>::async_set(const K& key, const size_t hash_value) {
-  const size_t n_procs_u = MpiUtil::get_n_procs();
-  const size_t proc_id_u = MpiUtil::get_proc_id();
+  const size_t n_procs_u = n_procs;
+  const size_t proc_id_u = proc_id;
   const size_t dest_proc_id = hash_value % n_procs_u;
   const size_t dist_hash_value = hash_value / n_procs_u;
   if (dest_proc_id == proc_id_u) {
@@ -58,10 +71,10 @@ void DistHashSet<K, H>::sync() {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     const int src_proc_id = shuffled_procs[(shuffled_id + n_procs - i) % n_procs];
     remote_data[dest_proc_id].sync();
-    send_buf = remote_data[dest_proc_id].to_string();
+    hps::to_string(remote_data[dest_proc_id], send_buf);
     remote_data[dest_proc_id].clear();
     size_t send_cnt = send_buf.size();
-    size_t recv_cnt;
+    size_t recv_cnt = 0;
     MPI_Irecv(&recv_cnt, 1, MpiType<size_t>::value, src_proc_id, 0, MPI_COMM_WORLD, &reqs[0]);
     MPI_Isend(&send_cnt, 1, MpiType<size_t>::value, dest_proc_id, 0, MPI_COMM_WORLD, &reqs[1]);
     MPI_Waitall(2, reqs, stats);
@@ -86,9 +99,11 @@ void DistHashSet<K, H>::sync() {
       MPI_Waitall(2, reqs, stats);
       recv_buf.append(recv_buf_char, recv_trunk_cnt);
     }
-    remote_data[dest_proc_id].from_string(recv_buf);
-    remote_data[dest_proc_id].for_each(node_handler);
+
+    hps::from_string(recv_buf, remote_data[dest_proc_id]);
+    remote_data[dest_proc_id].for_each_serial(node_handler);
     remote_data[dest_proc_id].clear();
+    MPI_Barrier(MPI_COMM_WORLD);
   }
   local_data.sync();
 }
@@ -97,8 +112,6 @@ template <class K, class H>
 void DistHashSet<K, H>::for_each_serial(
     const std::function<void(const K& key, const size_t hash_value)>& handler) {
   const auto& local_maps = gather(local_data);
-  HashSet<K, H> res;
-  const int n_procs = MpiUtil::get_n_procs();
   for (int i = 0; i < n_procs; i++) {
     local_maps[i].for_each_serial(handler);
   }

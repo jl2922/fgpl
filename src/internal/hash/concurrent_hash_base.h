@@ -39,10 +39,6 @@ class ConcurrentHashBase {
 
   void clear_and_shrink();
 
-  std::string to_string();
-
-  void from_string(const std::string& str);
-
  protected:
   size_t n_segments;
 
@@ -56,8 +52,6 @@ class ConcurrentHashBase {
 
  private:
   float max_load_factor;
-
-  bool has_big_prime_factors(const int num);
 };
 
 template <class K, class V, class S, class H>
@@ -149,46 +143,6 @@ void ConcurrentHashBase<K, V, S, H>::clear_and_shrink() {
   for (size_t i = 0; i < n_threads; i++) thread_caches.at(i).clear_and_shrink();
 }
 
-// template <class K, class V, class S, class H>
-// std::string ConcurrentHashBase<K, V, S, H>::to_string() {
-//   std::vector<std::string> ostrs(n_segments);
-//   size_t total_size = 0;
-// #pragma omp parallel for
-//   for (size_t i = 0; i < n_segments; i++) {
-//     auto& lock = segment_locks[i];
-//     omp_set_lock(&lock);
-//     hps::serialize_to_string(segments.at(i), ostrs.at(i));
-//     omp_unset_lock(&lock);
-// #pragma omp atomic
-//     total_size += ostrs[i].size();
-//   }
-//   std::string str;
-//   str.reserve(total_size + n_segments * 8);
-//   hps::OutputBuffer<std::string> ob_str(str);
-//   hps::Serializer<float, std::string>::serialize(max_load_factor, ob_str);
-//   for (size_t i = 0; i < n_segments; i++) {
-//     hps::Serializer<std::string, std::string>::serialize(ostrs[i], ob_str);
-//   }
-//   ob_str.flush();
-//   return str;
-// }
-
-// template <class K, class V, class S, class H>
-// void ConcurrentHashBase<K, V, S, H>::from_string(const std::string& str) {
-//   std::vector<std::string> istrs(n_segments);
-//   hps::InputBuffer<std::string> ib_str(str);
-//   hps::Serializer<float, std::string>::parse(max_load_factor, ib_str);
-//   for (size_t i = 0; i < n_segments; i++) {
-//     hps::Serializer<std::string, std::string>::parse(istrs[i], ib_str);
-//   }
-// #pragma omp parallel for
-//   for (size_t i = 0; i < n_segments; i++) {
-//     auto& lock = segment_locks[i];
-//     omp_set_lock(&lock);
-//     hps::parse_from_string(segments.at(i), istrs[i]);
-//     omp_unset_lock(&lock);
-//   }
-// }
 }  // namespace hash
 }  // namespace internal
 }  // namespace fgpl

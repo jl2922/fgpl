@@ -1,8 +1,9 @@
 #pragma once
 
 #include <vector>
-#include "internal/mpi_type.h"
-#include "internal/mpi_util.h"
+#include "../mpi_type.h"
+#include "../mpi_util.h"
+#include "dist_hasher.h"
 
 namespace fgpl {
 namespace internal {
@@ -29,10 +30,12 @@ class DistHashBase {
 
   void clear_and_shrink();
 
- private:
-  H hasher;
+ protected:
+  int n_procs;
 
-  float max_load_factor;
+  int proc_id;
+
+  H hasher;
 
   C local_data;
 
@@ -41,11 +44,15 @@ class DistHashBase {
   std::vector<int> generate_shuffled_procs();
 
   int get_shuffled_id(const std::vector<int>& shuffled_procs);
+
+ private:
+  float max_load_factor;
 };
 
 template <class K, class V, class C, class H>
 DistHashBase<K, V, C, H>::DistHashBase() {
-  const int n_procs = internal::MpiUtil::get_n_procs();
+  n_procs = internal::MpiUtil::get_n_procs();
+  proc_id = internal::MpiUtil::get_proc_id();
   remote_data.resize(n_procs);
   max_load_factor = local_data.get_max_load_factor();
 }
@@ -91,7 +98,6 @@ void DistHashBase<K, V, C, H>::set_max_load_factor(const float max_load_factor) 
 template <class K, class V, class C, class H>
 std::vector<int> DistHashBase<K, V, C, H>::generate_shuffled_procs() {
   std::vector<int> res(n_procs);
-
   if (proc_id == 0) {
     // Fisher–Yates shuffle algorithm.
     for (int i = 0; i < n_procs; i++) res[i] = i;

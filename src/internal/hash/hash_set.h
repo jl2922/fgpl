@@ -14,12 +14,21 @@ class HashSet : public HashBase<K, void, H> {
  public:
   void set(const K& key, const size_t hash_value);
 
-  void for_each(
-      const std::function<void(const K& key, const size_t hash_value)>& handler) const;
+  void for_each(const std::function<void(const K& key, const size_t hash_value)>& handler) const;
 
   using HashBase<K, void, H>::max_load_factor;
 
   using HashBase<K, void, H>::reserve_n_buckets;
+
+  using HashBase<K, void, H>::clear;
+
+  using HashBase<K, void, H>::reserve;
+
+  template <class B>
+  void serialize(B& buf) const;
+
+  template <class B>
+  void parse(B& buf);
 
  protected:
   using HashBase<K, void, H>::n_keys;
@@ -61,6 +70,30 @@ void HashSet<K, H>::for_each(
     }
   }
 }
+
+template <class K, class H>
+template <class B>
+void HashSet<K, H>::serialize(B& buf) const {
+  buf << n_keys;
+  const auto& handler = [&](const K& key, const size_t) { buf << key; };
+  for_each(handler);
+}
+
+template <class K, class H>
+template <class B>
+void HashSet<K, H>::parse(B& buf) {
+  size_t n_keys_buf;
+  clear();
+  buf >> n_keys_buf;
+  reserve(n_keys_buf);
+  H hasher;
+  K key;
+  for (size_t i = 0; i < n_keys_buf; i++) {
+    buf >> key;
+    set(key, hasher(key));
+  }
+}
+
 }  // namespace hash
 }  // namespace internal
 }  // namespace fgpl

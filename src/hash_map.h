@@ -24,5 +24,13 @@ class HashMap : public internal::hash::HashMap<K, V, H> {
 
  private:
   H hasher;
+
+  using internal::hash::HashMap<K, V, H>::set;
+
+  using internal::hash::HashMap<K, V, H>::get;
+
+  using internal::hash::HashMap<K, V, H>::unset;
+
+  using internal::hash::HashMap<K, V, H>::has;
 };
 }  // namespace fgpl
