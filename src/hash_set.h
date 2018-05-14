@@ -15,5 +15,11 @@ class HashSet : public internal::hash::HashSet<K, H> {
 
  private:
   H hasher;
+
+  using internal::hash::HashSet<K, H>::set;
+
+  using internal::hash::HashSet<K, H>::unset;
+
+  using internal::hash::HashSet<K, H>::has;
 };
 }  // namespace fgpl

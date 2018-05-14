@@ -21,7 +21,7 @@ std::vector<T> gather(T& t) {
   char* buffer_recv = new char[max_count];
   char* buffer_ptr = nullptr;
   std::vector<T> res(n_procs);
-  const int TRUNK_SIZE = 1 << 30;
+  const int TRUNK_SIZE = 1 << 20;
   const int proc_id = internal::MpiUtil::get_proc_id();
   for (int root = 0; root < n_procs; root++) {
     const bool is_root = (proc_id == root);

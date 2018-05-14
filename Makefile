@@ -1,7 +1,7 @@
 # Default options.
 CXX := mpic++
 CXX_WARNING_OPTIONS := -Wall -Wextra -Wno-unused-result
-CXXFLAGS := -std=c++11 -O3 -g -fopenmp $(CXX_WARNING_OPTIONS)
+CXXFLAGS := -std=c++11 -O3 -fopenmp $(CXX_WARNING_OPTIONS)
 LDLIBS := -pthread -lpthread
 SRC_DIR := src
 BUILD_DIR := build
@@ -15,9 +15,10 @@ ifneq ($(wildcard $(LOCAL_MAKEFILE)),)
 endif
 
 # Link Google Perf if available.
-GPERFTOOLS_DIR := $(TOOLS_DIR)/gperftools
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
+	TOOLS_DIR := $(HOME)/tools
+	GPERFTOOLS_DIR := $(TOOLS_DIR)/gperftools
 	ifneq ($(wildcard $(GPERFTOOLS_DIR)),)
 		LDLIBS := -L $(GPERFTOOLS_DIR)/lib $(LDLIBS) -ltcmalloc
 	endif
