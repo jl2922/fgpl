@@ -103,7 +103,6 @@ void DistHashSet<K, H>::sync() {
     hps::from_string(recv_buf, remote_data[dest_proc_id]);
     remote_data[dest_proc_id].for_each_serial(node_handler);
     remote_data[dest_proc_id].clear();
-    MPI_Barrier(MPI_COMM_WORLD);
   }
   local_data.sync();
 }
