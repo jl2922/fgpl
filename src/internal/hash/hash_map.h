@@ -27,6 +27,16 @@ class HashMap : public HashBase<K, V, H> {
 
   using HashBase<K, V, H>::reserve_n_buckets;
 
+  using HashBase<K, V, H>::clear;
+
+  using HashBase<K, V, H>::reserve;
+
+  template <class B>
+  void serialize(B& buf) const;
+
+  template <class B>
+  void parse(B& buf);
+
  protected:
   using HashBase<K, V, H>::n_keys;
 
@@ -90,6 +100,31 @@ void HashMap<K, V, H>::for_each(
     }
   }
 }
+
+template <class K, class V, class H>
+template <class B>
+void HashMap<K, V, H>::serialize(B& buf) const {
+  buf << n_keys;
+  const auto& handler = [&](const K& key, const size_t, const V& value) { buf << key << value; };
+  for_each(handler);
+}
+
+template <class K, class V, class H>
+template <class B>
+void HashMap<K, V, H>::parse(B& buf) {
+  size_t n_keys_buf;
+  clear();
+  buf >> n_keys_buf;
+  reserve(n_keys_buf);
+  H hasher;
+  K key;
+  V value;
+  for (size_t i = 0; i < n_keys_buf; i++) {
+    buf >> key >> value;
+    set(key, hasher(key), value);
+  }
+}
+
 }  // namespace hash
 }  // namespace internal
 }  // namespace fgpl
