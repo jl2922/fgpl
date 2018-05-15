@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <vector>
+#include "../../reducer.h"
 #include "hash_base.h"
 
 namespace fgpl {
@@ -121,7 +122,7 @@ void HashMap<K, V, H>::parse(B& buf) {
   V value;
   for (size_t i = 0; i < n_keys_buf; i++) {
     buf >> key >> value;
-    set(key, hasher(key), value);
+    set(key, hasher(key), value, Reducer<V>::keep);
   }
 }
 
