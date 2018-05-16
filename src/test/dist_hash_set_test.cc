@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include "../dist_range.h"
 
-TEST(DistHashTest, AsyncSetAndSyncTest) {
+TEST(DistHashSetTest, AsyncSetAndSyncTest) {
   const long long N_KEYS = 100;
   fgpl::DistHashSet<long long> ds;
   fgpl::DistRange<long long> range(0, N_KEYS);
