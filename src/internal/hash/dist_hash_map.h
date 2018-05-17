@@ -22,7 +22,7 @@ class DistHashMap : public DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher
 
   void sync(const std::function<void(V&, const V&)>& reducer = Reducer<V>::overwrite);
 
-  void get_local(const K& key, const size_t hash_value, const V& default_value) const;
+  double get_local(const K& key, const size_t hash_value, const V& default_value) const;
 
   void for_each(
       const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
@@ -72,7 +72,7 @@ void DistHashMap<K, V, H>::async_set(
 }
 
 template <class K, class V, class H>
-void DistHashMap<K, V, H>::get_local(
+double DistHashMap<K, V, H>::get_local(
     const K& key, const size_t hash_value, const V& default_value) const {
   const size_t n_procs_u = n_procs;
   const size_t proc_id_u = proc_id;
