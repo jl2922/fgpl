@@ -22,11 +22,19 @@ class DistHashMap : public DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher
 
   void sync(const std::function<void(V&, const V&)>& reducer = Reducer<V>::overwrite);
 
+  void get_local(const K& key, const size_t hash_value, const V& default_value) const;
+
   void for_each(
       const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
 
   void for_each_serial(
       const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
+
+  template <class V2>
+  V2 mapreduce(
+      const std::function<V2(const K& key, const V& value)>& mapper,
+      const std::function<void(V2&, const V2&)>& reducer,
+      const V2& default_value);
 
  private:
   DistHasher<K, H> dist_hasher;
@@ -60,6 +68,20 @@ void DistHashMap<K, V, H>::async_set(
     local_data.async_set(key, dist_hash_value, value, reducer);
   } else {
     remote_data[dest_proc_id].async_set(key, dist_hash_value, value, reducer);
+  }
+}
+
+template <class K, class V, class H>
+void DistHashMap<K, V, H>::get_local(
+    const K& key, const size_t hash_value, const V& default_value) const {
+  const size_t n_procs_u = n_procs;
+  const size_t proc_id_u = proc_id;
+  const size_t dest_proc_id = hash_value % n_procs_u;
+  const size_t dist_hash_value = hash_value / n_procs_u;
+  if (dest_proc_id == proc_id_u) {
+    return local_data.get(key, dist_hash_value, default_value);
+  } else {
+    throw std::runtime_error("data not locally cached");
   }
 }
 
@@ -133,6 +155,29 @@ void DistHashMap<K, V, H>::for_each_serial(
   for (int i = 0; i < n_procs; i++) {
     local_maps[i].for_each_serial(handler);
   }
+}
+
+template <class K, class V, class H>
+template <class V2>
+V2 DistHashMap<K, V, H>::mapreduce(
+    const std::function<V2(const K& key, const V& value)>& mapper,
+    const std::function<void(V2&, const V2&)>& reducer,
+    const V2& default_value) {
+  const int n_threads = omp_get_max_threads();
+  std::vector<V2> res_thread(n_threads, default_value);
+  for_each([&](const K& key, const size_t, const V& value) {
+    const int thread_id = omp_get_thread_num();
+    reducer(res_thread[thread_id], mapper(key, value));
+  });
+  V2 res_local;
+  V2 res;
+  res_local = res_thread[0];
+  for (int i = 1; i < n_threads; i++) res_local += res_thread[i];
+  std::vector<V2> res_locals = gather(res_local);
+  res = res_locals[0];
+  const int n_procs = MpiUtil::get_n_procs();
+  for (int i = 1; i < n_procs; i++) reducer(res, res_locals[i]);
+  return res;
 }
 
 }  // namespace hash

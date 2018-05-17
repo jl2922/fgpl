@@ -14,9 +14,15 @@ class DistHashMap : public internal::hash::DistHashMap<K, V, H> {
     internal::hash::DistHashMap<K, V, H>::async_set(key, hasher(key), value, reducer);
   }
 
+  void get_local(const K& key, const V& default_value) const {
+    return internal::hash::DistHashMap<K, V, H>::get_local(key, hasher(key), default_value);
+  }
+
  private:
   H hasher;
 
   using internal::hash::DistHashMap<K, V, H>::async_set;
+
+  using internal::hash::DistHashMap<K, V, H>::get_local;
 };
 }  // namespace fgpl
