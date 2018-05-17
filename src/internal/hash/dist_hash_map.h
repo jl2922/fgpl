@@ -105,7 +105,7 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     const int src_proc_id = shuffled_procs[(shuffled_id + n_procs - i) % n_procs];
-    remote_data[dest_proc_id].sync();
+    remote_data[dest_proc_id].sync(reducer);
     hps::to_string(remote_data[dest_proc_id], send_buf);
     remote_data[dest_proc_id].clear();
     size_t send_cnt = send_buf.size();
