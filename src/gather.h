@@ -1,3 +1,5 @@
+#pragma once
+
 #include <hps/src/hps.h>
 #include <algorithm>
 #include <vector>
