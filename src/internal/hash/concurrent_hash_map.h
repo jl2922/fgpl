@@ -25,6 +25,9 @@ class ConcurrentHashMap : public ConcurrentHashBase<K, V, HashMap<K, V, H>, H> {
 
   void sync(const std::function<void(V&, const V&)>& reducer = Reducer<V>::overwrite);
 
+  void for_each(const std::function<void(const K& key, const size_t hash_value, const V& value)>&
+                    handler) const;
+
   void for_each_serial(
       const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler)
       const;
@@ -97,6 +100,16 @@ void ConcurrentHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& r
     };
     thread_caches.at(thread_id).for_each(handler);
     thread_caches.at(thread_id).clear();
+  }
+}
+
+template <class K, class V, class H>
+void ConcurrentHashMap<K, V, H>::for_each(
+    const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler)
+    const {
+#pragma omp parallel for
+  for (size_t segment_id = 0; segment_id < n_segments; segment_id++) {
+    segments[segment_id].for_each(handler);
   }
 }
 

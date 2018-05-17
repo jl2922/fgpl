@@ -2,58 +2,71 @@
 
 #include "../../../vendor/hps/src/hps.h"
 #include "../../gather.h"
+#include "../../reducer.h"
 #include "../mpi_util.h"
-#include "concurrent_hash_set.h"
+#include "concurrent_hash_map.h"
 #include "dist_hash_base.h"
 
 namespace fgpl {
 namespace internal {
 namespace hash {
 
-template <class K, class H = std::hash<K>>
-class DistHashSet : public DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H> {
+template <class K, class V, class H = std::hash<K>>
+class DistHashMap : public DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H> {
  public:
-  void async_set(const K& key, const size_t hash_value);
+  void async_set(
+      const K& key,
+      const size_t hash_value,
+      const V& value,
+      const std::function<void(V&, const V&)>& reducer);
 
-  void sync();
+  void sync(const std::function<void(V&, const V&)>& reducer = Reducer<V>::overwrite);
 
-  void for_each_serial(const std::function<void(const K& key, const size_t hash_value)>& handler);
+  void for_each(
+      const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
+
+  void for_each_serial(
+      const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
 
  private:
   DistHasher<K, H> dist_hasher;
 
-  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::hasher;
+  using DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H>::hasher;
 
-  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::n_procs;
+  using DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H>::n_procs;
 
-  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::proc_id;
+  using DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H>::proc_id;
 
-  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::local_data;
+  using DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H>::local_data;
 
-  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::remote_data;
+  using DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H>::remote_data;
 
-  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::generate_shuffled_procs;
+  using DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H>::generate_shuffled_procs;
 
-  using DistHashBase<K, void, ConcurrentHashSet<K, DistHasher<K, H>>, H>::get_shuffled_id;
+  using DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher<K, H>>, H>::get_shuffled_id;
 };
 
-template <class K, class H>
-void DistHashSet<K, H>::async_set(const K& key, const size_t hash_value) {
+template <class K, class V, class H>
+void DistHashMap<K, V, H>::async_set(
+    const K& key,
+    const size_t hash_value,
+    const V& value,
+    const std::function<void(V&, const V&)>& reducer) {
   const size_t n_procs_u = n_procs;
   const size_t proc_id_u = proc_id;
   const size_t dest_proc_id = hash_value % n_procs_u;
   const size_t dist_hash_value = hash_value / n_procs_u;
   if (dest_proc_id == proc_id_u) {
-    local_data.async_set(key, dist_hash_value);
+    local_data.async_set(key, dist_hash_value, value, reducer);
   } else {
-    remote_data[dest_proc_id].async_set(key, dist_hash_value);
+    remote_data[dest_proc_id].async_set(key, dist_hash_value, value, reducer);
   }
 }
 
-template <class K, class H>
-void DistHashSet<K, H>::sync() {
-  const auto& node_handler = [&](const K& key, const size_t hash_value) {
-    local_data.async_set(key, hash_value);
+template <class K, class V, class H>
+void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer) {
+  const auto& node_handler = [&](const K& key, const size_t hash_value, const V& value) {
+    local_data.async_set(key, hash_value, value, reducer);
   };
 
   // Accelerate overall network transfer through randomization.
@@ -104,15 +117,21 @@ void DistHashSet<K, H>::sync() {
     remote_data[dest_proc_id].for_each_serial(node_handler);
     remote_data[dest_proc_id].clear();
   }
-  local_data.sync();
+  local_data.sync(reducer);
 }
 
-template <class K, class H>
-void DistHashSet<K, H>::for_each_serial(
-    const std::function<void(const K& key, const size_t hash_value)>& handler) {
-  const auto& local_sets = gather(local_data);
+template <class K, class V, class H>
+void DistHashMap<K, V, H>::for_each(
+    const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler) {
+  local_data.for_each(handler);
+}
+
+template <class K, class V, class H>
+void DistHashMap<K, V, H>::for_each_serial(
+    const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler) {
+  const auto& local_maps = gather(local_data);
   for (int i = 0; i < n_procs; i++) {
-    local_sets[i].for_each_serial(handler);
+    local_maps[i].for_each_serial(handler);
   }
 }
 
