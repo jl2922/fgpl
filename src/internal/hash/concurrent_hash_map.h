@@ -23,6 +23,8 @@ class ConcurrentHashMap : public ConcurrentHashBase<K, V, HashMap<K, V, H>, H> {
       const V& value,
       const std::function<void(V&, const V&)>& reducer);
 
+  V get(const K& key, const size_t hash_value, const V& default_value) const;
+
   void sync(const std::function<void(V&, const V&)>& reducer = Reducer<V>::overwrite);
 
   void for_each(const std::function<void(const K& key, const size_t hash_value, const V& value)>&
@@ -84,6 +86,16 @@ void ConcurrentHashMap<K, V, H>::async_set(
     const int thread_id = omp_get_thread_num();
     thread_caches[thread_id].set(key, hash_value, value, reducer);
   }
+}
+
+template <class K, class V, class H>
+V ConcurrentHashMap<K, V, H>::get(
+    const K& key, const size_t hash_value, const V& default_value) const {
+  const size_t segment_id = hash_value % n_segments;
+  auto& lock = segment_locks[segment_id];
+  HashMap<K, V, H>* segment_ptr = &segments[segment_id];
+  V res = segment_ptr->get(key, hash_value, default_value);
+  return res;
 }
 
 template <class K, class V, class H>
