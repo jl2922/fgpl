@@ -110,9 +110,9 @@ void DistHashSet<K, H>::sync() {
 template <class K, class H>
 void DistHashSet<K, H>::for_each_serial(
     const std::function<void(const K& key, const size_t hash_value)>& handler) {
-  const auto& local_maps = gather(local_data);
+  const auto& local_sets = gather(local_data);
   for (int i = 0; i < n_procs; i++) {
-    local_maps[i].for_each_serial(handler);
+    local_sets[i].for_each_serial(handler);
   }
 }
 

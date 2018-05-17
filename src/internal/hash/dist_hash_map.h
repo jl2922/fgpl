@@ -22,6 +22,9 @@ class DistHashMap : public DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher
 
   void sync(const std::function<void(V&, const V&)>& reducer = Reducer<V>::overwrite);
 
+  void for_each(
+      const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
+
   void for_each_serial(
       const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
 
@@ -115,6 +118,12 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
     remote_data[dest_proc_id].clear();
   }
   local_data.sync(reducer);
+}
+
+template <class K, class V, class H>
+void DistHashMap<K, V, H>::for_each(
+    const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler) {
+  local_data.for_each(handler);
 }
 
 template <class K, class V, class H>
