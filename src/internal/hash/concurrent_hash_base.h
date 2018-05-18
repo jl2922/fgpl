@@ -133,13 +133,17 @@ bool ConcurrentHashBase<K, V, S, H>::has(const K& key, const size_t hash_value) 
 
 template <class K, class V, class S, class H>
 void ConcurrentHashBase<K, V, S, H>::clear() {
+#pragma omp parallel for
   for (size_t i = 0; i < n_segments; i++) segments.at(i).clear();
+#pragma omp parallel for
   for (size_t i = 0; i < n_threads; i++) thread_caches.at(i).clear();
 }
 
 template <class K, class V, class S, class H>
 void ConcurrentHashBase<K, V, S, H>::clear_and_shrink() {
+#pragma omp parallel for
   for (size_t i = 0; i < n_segments; i++) segments.at(i).clear_and_shrink();
+#pragma omp parallel for
   for (size_t i = 0; i < n_threads; i++) thread_caches.at(i).clear_and_shrink();
 }
 
