@@ -101,7 +101,6 @@ std::vector<int> DistHashBase<K, V, C, H>::generate_shuffled_procs() {
   if (proc_id == 0) {
     // Fisher–Yates shuffle algorithm.
     for (int i = 0; i < n_procs; i++) res[i] = i;
-    // srand(time(0));
     for (int i = res.size() - 1; i > 0; i--) {
       const int j = rand() % (i + 1);
       if (i != j) {
