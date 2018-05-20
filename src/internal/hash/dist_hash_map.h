@@ -24,8 +24,8 @@ class DistHashMap : public DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher
 
   double get_local(const K& key, const size_t hash_value, const V& default_value) const;
 
-  void for_each(
-      const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
+  void for_each(const std::function<void(const K& key, const size_t hash_value, const V& value)>&
+                    handler) const;
 
   void for_each_serial(
       const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
@@ -144,7 +144,8 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
 
 template <class K, class V, class H>
 void DistHashMap<K, V, H>::for_each(
-    const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler) {
+    const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler)
+    const {
   local_data.for_each(handler);
 }
 
