@@ -20,7 +20,7 @@ class HashMap : public internal::hash::HashMap<K, V, H> {
 
   void unset(const K& key) { internal::hash::HashMap<K, V, H>::unset(key, hasher(key)); }
 
-  bool has(const K& key) { return internal::hash::HashMap<K, V, H>::has(key, hasher(key)); }
+  bool has(const K& key) const { return internal::hash::HashMap<K, V, H>::has(key, hasher(key)); }
 
  private:
   H hasher;
