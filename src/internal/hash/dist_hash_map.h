@@ -88,7 +88,7 @@ double DistHashMap<K, V, H>::get_local(
 template <class K, class V, class H>
 void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer) {
   const auto& node_handler = [&](const K& key, const size_t hash_value, const V& value) {
-    local_data.async_set(key, hash_value, value, reducer);
+    local_data.set(key, hash_value, value, reducer);
   };
 
   // Accelerate overall network transfer through randomization.
@@ -136,7 +136,7 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
     }
 
     hps::from_string(recv_buf, remote_data[dest_proc_id]);
-    remote_data[dest_proc_id].for_each_serial(node_handler);
+    remote_data[dest_proc_id].for_each(node_handler);
     remote_data[dest_proc_id].clear();
   }
   local_data.sync(reducer);
