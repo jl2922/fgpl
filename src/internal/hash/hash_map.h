@@ -61,7 +61,7 @@ void HashMap<K, V, H>::set(
       buckets.at(bucket_id).fill(key, hash_value, value);
       n_keys++;
       if (n_buckets * max_load_factor <= n_keys) {
-        reserve_n_buckets(static_cast<size_t>(n_buckets * 1.4));
+        reserve_n_buckets(static_cast<size_t>(n_buckets * 1.3));
       }
       break;
     } else if (buckets.at(bucket_id).key_equals(key, hash_value)) {
