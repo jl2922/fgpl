@@ -83,7 +83,7 @@ size_t HashBase<K, V, H>::get_n_rehash_buckets(const size_t n_buckets_min) {
   constexpr size_t N_PRIMES = sizeof(PRIMES) / sizeof(size_t);
   constexpr size_t LAST_PRIME = PRIMES[N_PRIMES - 1];
   constexpr size_t BIG_PRIME = PRIMES[N_PRIMES - 10];
-  size_t remaining_factor = n_buckets_min + n_buckets_min / 4;
+  size_t remaining_factor = n_buckets_min + n_buckets_min / 8;
   size_t n_rehash_buckets = 1;
   while (remaining_factor > LAST_PRIME) {
     remaining_factor /= BIG_PRIME;
