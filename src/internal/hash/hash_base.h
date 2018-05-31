@@ -135,7 +135,7 @@ void HashBase<K, V, H>::check_balance(const size_t n_probes) {
     if (n_keys < n_buckets / 16) {
       throw std::runtime_error("Hash container is severely unbalanced.");
     }
-    reserve_n_buckets(n_buckets * 2);
+    reserve_n_buckets(static_cast<size_t>(n_buckets * 1.6));
   }
 }
 
