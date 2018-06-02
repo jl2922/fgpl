@@ -110,12 +110,11 @@ void ConcurrentHashSet<K, H>::parse(B& buf) {
   buf >> n_segments_buf >> max_load_factor;
   set_max_load_factor(max_load_factor);
   HashSet<K, H> segment_buf;
-  const auto& handler = [&](const K& key, const size_t hash_value) { async_set(key, hash_value); };
+  const auto& handler = [&](const K& key, const size_t hash_value) { set(key, hash_value); };
   for (size_t i = 0; i < n_segments_buf; i++) {
     buf >> segment_buf;
     segment_buf.for_each(handler);
   }
-  sync();
 }
 
 }  // namespace hash

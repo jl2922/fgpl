@@ -13,7 +13,7 @@ class HashBase {
  public:
   constexpr static float DEFAULT_MAX_LOAD_FACTOR = 0.7;
 
-  constexpr static size_t N_INITIAL_BUCKETS = 11;
+  constexpr static size_t N_INITIAL_BUCKETS = 13;
 
   constexpr static size_t MAX_N_PROBES = 64;
 
@@ -78,11 +78,12 @@ void HashBase<K, V, H>::reserve_n_buckets(const size_t n_buckets_min) {
 template <class K, class V, class H>
 size_t HashBase<K, V, H>::get_n_rehash_buckets(const size_t n_buckets_min) {
   constexpr size_t PRIMES[] = {
-      11, 17, 29, 47, 79, 127, 211, 337, 547, 887, 1433, 2311, 3739, 6053, 9791, 15859};
+      13, 17, 23, 29, 37, 47, 61, 79, 101, 127, 163, 211, 271, 337, 439, 547, 709, 887, 1153, 1433,
+      1861, 2311, 3001, 3739, 4861, 6053, 7867, 9791, 12721, 15859, 20611, 26783, 34841};
   constexpr size_t N_PRIMES = sizeof(PRIMES) / sizeof(size_t);
   constexpr size_t LAST_PRIME = PRIMES[N_PRIMES - 1];
-  constexpr size_t BIG_PRIME = PRIMES[N_PRIMES - 5];
-  size_t remaining_factor = n_buckets_min + n_buckets_min / 4;
+  constexpr size_t BIG_PRIME = PRIMES[N_PRIMES - 10];
+  size_t remaining_factor = n_buckets_min + n_buckets_min / 8;
   size_t n_rehash_buckets = 1;
   while (remaining_factor > LAST_PRIME) {
     remaining_factor /= BIG_PRIME;
@@ -135,7 +136,7 @@ void HashBase<K, V, H>::check_balance(const size_t n_probes) {
     if (n_keys < n_buckets / 16) {
       throw std::runtime_error("Hash container is severely unbalanced.");
     }
-    reserve_n_buckets(n_buckets * 2);
+    reserve_n_buckets(static_cast<size_t>(n_buckets * 1.3));
   }
 }
 
