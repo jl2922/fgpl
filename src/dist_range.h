@@ -1,3 +1,5 @@
+#pragma once
+
 #include <mpi.h>
 #include <omp.h>
 #include <functional>
@@ -24,7 +26,13 @@ class DistRange {
         target_progress += 0.1;
       }
     }
-    if (verbose) printf("\n");
+    if (verbose) {
+      while (target_progress <= 1.0) {
+        printf("%.0f%% ", target_progress * 100);
+        target_progress += 0.1;
+      }
+      printf("\n");
+    }
   }
 
  private:
