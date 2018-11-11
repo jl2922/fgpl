@@ -7,4 +7,4 @@ Fast Generic Parallel Library
 TBA
 
 ## Benchmark
-![Serialize and Parse Time](https://raw.githubusercontent.com/jl2922/fgpl/mapreducetests/performance.png)
+![Serialize and Parse Time](https://github.com/jl2922/fgpl/blob/master/performance.pngg)
