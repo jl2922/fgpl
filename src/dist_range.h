@@ -3,6 +3,8 @@
 #include <mpi.h>
 #include <omp.h>
 #include <functional>
+#include <vector>
+#include "gather.h"
 #include "internal/mpi_util.h"
 
 namespace fgpl {
@@ -33,6 +35,28 @@ class DistRange {
       }
       printf("\n");
     }
+  }
+
+  template <class T2>
+  T2 mapreduce(
+      const std::function<T2(const T value)>& mapper,
+      const std::function<void(T2&, const T2&)>& reducer,
+      const T2& default_value) {
+    const int n_threads = omp_get_max_threads();
+    std::vector<T2> res_thread(n_threads, default_value);
+    for_each([&](const T t) {
+      const int thread_id = omp_get_thread_num();
+      reducer(res_thread[thread_id], mapper(t));
+    });
+    T2 res_local;
+    T2 res;
+    res_local = res_thread[0];
+    for (int i = 1; i < n_threads; i++) res_local += res_thread[i];
+    std::vector<T2> res_locals = gather(res_local);
+    res = res_locals[0];
+    const int n_procs = internal::MpiUtil::get_n_procs();
+    for (int i = 1; i < n_procs; i++) reducer(res, res_locals[i]);
+    return res;
   }
 
  private:
