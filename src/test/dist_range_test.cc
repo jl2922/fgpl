@@ -32,7 +32,8 @@ TEST(DistRangeTest, MapreduceTestToMap) {
   std::cout << lines.size() << std::endl;
   fgpl::DistRange<int> range(0, lines.size());
   fgpl::DistHashMap<std::string, int> target;
-  const auto& mapper = [&](const int i, const auto& emit) {
+  const auto& mapper = [&](const int i, const std::function<void(const std::string&, const int&)>& emit) {
+    // const auto& mapper = [&](const int i, const auto& emit) {
     std::stringstream ss(lines[i]);
     std::string word;
     while (std::getline(ss, word, ' ')) {
