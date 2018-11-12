@@ -2,8 +2,12 @@
 
 #include <mpi.h>
 #include <omp.h>
+#include <fstream>
 #include <functional>
+#include <iostream>
 #include <vector>
+
+#include "dist_hash_map.h"
 #include "gather.h"
 #include "internal/mpi_util.h"
 
@@ -35,6 +39,19 @@ class DistRange {
       }
       printf("\n");
     }
+  }
+
+  template <class K, class V, class H>
+  void mapreduce(
+      const std::function<void(const T value, const std::function<void(const K&, const V&)>& emit)>&
+          mapper,
+      const std::function<void(V&, const V&)>& reducer,
+      DistHashMap<K, V, H>& dm) {
+    const auto& emit = [&](const K& key, const V& value) {
+      dm.async_set(key, value, reducer);
+    };
+    for_each([&](const T t) { mapper(t, emit); });
+    dm.sync(reducer);
   }
 
   template <class T2>
