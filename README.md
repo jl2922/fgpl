@@ -6,6 +6,25 @@ Fast Generic Parallel Library
 ## Usage
 TBA
 
+## Example
+Count number of occurences of each word:
+```c++
+std::vector<std::string> lines;
+// load data ...
+fgpl::DistRange<int> range(0, lines.size());
+fgpl::DistHashMap<std::string, int> target;
+const auto& mapper = [&](const int i, const auto& emit) {
+  std::stringstream ss(lines[i]);
+  std::string word;
+  while (std::getline(ss, word, ' ')) {
+    emit(word, 1);
+  }
+};
+range.mapreduce<std::string, int, std::hash<std::string>>(
+    mapper, fgpl::Reducer<int>::sum, target);
+std::cout << target.get_n_keys() << std::endl;  // Output number of distinct words.
+```
+
 ## Benchmark
 ![Serialize and Parse Time](https://github.com/jl2922/fgpl/blob/master/performance.png)
 
