@@ -6,6 +6,16 @@ Fast Generic Parallel Library
 ## Usage
 TBA
 
+## Citation
+```
+@article{li2018comparing,
+  title={Comparing Spark vs MPI/OpenMP On Word Count MapReduce},
+  author={Li, Junhao},
+  journal={arXiv preprint arXiv:1811.04875},
+  year={2018}
+}
+```
+
 ## Example
 Count number of occurences of each word:
 ```c++
