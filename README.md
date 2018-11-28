@@ -3,19 +3,6 @@ Fast Generic Parallel Library
 
 [![Build Status](https://travis-ci.org/jl2922/fgpl.svg?branch=master)](https://travis-ci.org/jl2922/fgpl)
 
-## Usage
-TBA
-
-## Citation
-```
-@article{li2018comparing,
-  title={Comparing Spark vs MPI/OpenMP On Word Count MapReduce},
-  author={Li, Junhao},
-  journal={arXiv preprint arXiv:1811.04875},
-  year={2018}
-}
-```
-
 ## Example
 Count number of occurences of each word:
 ```c++
@@ -35,6 +22,16 @@ range.mapreduce<std::string, int, std::hash<std::string>>(
 std::cout << target.get_n_keys() << std::endl;  // Output number of distinct words.
 ```
 
+## Citation
+```
+@article{li2018comparing,
+  title={Comparing Spark vs MPI/OpenMP On Word Count MapReduce},
+  author={Li, Junhao},
+  journal={arXiv preprint arXiv:1811.04875},
+  year={2018}
+}
+```
+
 ## Benchmark
 ![Serialize and Parse Time](https://github.com/jl2922/fgpl/blob/master/performance.png)
 
@@ -45,3 +42,6 @@ FGPL's implementations are in the DistHashMapTest and DistRangeTest of CI.
 
 The input file for word count is from Shakespeare and the Bible, repeated ~100 times to make it ~1GB in size.
 We use MapReduce to count the number of occurrences of each word.
+
+## Documation
+TBA
