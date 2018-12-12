@@ -88,7 +88,6 @@ double DistHashMap<K, V, H>::get_local(
 
 template <class K, class V, class H>
 void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer) {
-  printf("syncing ");
   const auto& node_handler = [&](const K& key, const size_t hash_value, const V& value) {
     local_data.set(key, hash_value, value, reducer);
   };
@@ -110,8 +109,6 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     hps::to_string(remote_data[dest_proc_id], send_bufs[i]);
   }
-  
-  printf("transfering ");
 
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
@@ -148,13 +145,10 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
     }
   }
 
-  printf("loading ");
-
   size_t n_keys = local_data.get_n_keys();
 #pragma omp parallel for schedule(dynamic, 1)
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
-    printf("parse ");
     hps::from_string(recv_bufs[i], remote_data[dest_proc_id]);
 #pragma omp atomic
     n_keys += remote_data[dest_proc_id].get_n_keys();
@@ -165,16 +159,11 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
 #pragma omp parallel for schedule(dynamic, 1)
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
-    printf("foreach ");
     remote_data[dest_proc_id].for_each_serial(node_handler);
     remote_data[dest_proc_id].clear();
   }
 
-  printf("lloading ");
-
   local_data.sync(reducer);
-
-  printf("complete ");
 }
 
 template <class K, class V, class H>
