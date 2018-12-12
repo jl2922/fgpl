@@ -117,7 +117,7 @@ template <class K, class V, class H>
 void ConcurrentHashMap<K, V, H>::for_each(
     const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler)
     const {
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic, 32)
   for (size_t segment_id = 0; segment_id < n_segments; segment_id++) {
     segments[segment_id].for_each(handler);
   }
