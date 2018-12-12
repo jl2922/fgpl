@@ -29,4 +29,4 @@ export PATH=$TOOLS_DIR/openmpi/bin:$PATH
 export LD_LIBRARY_PATH=$TOOLS_DIR/openmpi/lib:$LD_LIBRARY_PATH
 
 make -j
-make test_mpi
+# make test_mpi # Not supported on travis anymore.
