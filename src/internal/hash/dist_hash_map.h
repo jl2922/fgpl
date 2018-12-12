@@ -105,7 +105,7 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
   MPI_Request reqs[2];
   MPI_Status stats[2];
 
-#pragma omp parallel for schedule(static, 1)
+#pragma omp parallel for schedule(dynamic, 1)
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     hps::to_string(remote_data[dest_proc_id], send_bufs[i]);
@@ -151,7 +151,7 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
   printf("loading ");
 
   size_t n_keys = local_data.get_n_keys();
-#pragma omp parallel for schedule(static, 1)
+#pragma omp parallel for schedule(dynamic, 1)
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     printf("parse ");
@@ -162,7 +162,7 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
 
   local_data.reserve(n_keys);
 
-#pragma omp parallel for schedule(static, 1)
+#pragma omp parallel for schedule(dynamic, 1)
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     printf("foreach ");
