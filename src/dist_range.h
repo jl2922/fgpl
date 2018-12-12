@@ -21,7 +21,7 @@ class DistRange {
     const int n_procs = internal::MpiUtil::get_n_procs();
     const int proc_id = internal::MpiUtil::get_proc_id();
     double target_progress = 0.1;
-#pragma omp parallel for schedule(dynamic, 5)
+#pragma omp parallel for schedule(dynamic, 4)
     for (T t = start + inc * proc_id; t < end; t += inc * n_procs) {
       handler(t);
       const double current_progress = static_cast<double>(t - start) / (end - start);

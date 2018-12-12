@@ -48,7 +48,7 @@ test: $(TEST_EXE)
 	./$(TEST_EXE)
 
 test_mpi: $(TEST_EXE)
-	mpirun -n 4 ./$(TEST_EXE)
+	OMP_NUM_THREADS=2 mpirun -n 2 ./$(TEST_EXE)
 
 clean:
 	rm -rf $(BUILD_DIR)

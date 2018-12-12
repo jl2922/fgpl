@@ -24,8 +24,9 @@ class DistHashMap : public DistHashBase<K, V, ConcurrentHashMap<K, V, DistHasher
 
   double get_local(const K& key, const size_t hash_value, const V& default_value) const;
 
-  void for_each(const std::function<void(const K& key, const size_t hash_value, const V& value)>&
-                    handler) const;
+  void for_each(
+      const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler)
+      const;
 
   void for_each_serial(
       const std::function<void(const K& key, const size_t hash_value, const V& value)>& handler);
@@ -95,18 +96,26 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
   const auto& shuffled_procs = generate_shuffled_procs();
   const int shuffled_id = get_shuffled_id(shuffled_procs);
 
-  std::string send_buf;
-  std::string recv_buf;
+  std::vector<std::string> send_bufs(n_procs);
+  std::vector<std::string> recv_bufs(n_procs);
   const size_t BUF_SIZE = 1 << 20;
   char send_buf_char[BUF_SIZE];
   char recv_buf_char[BUF_SIZE];
   MPI_Request reqs[2];
   MPI_Status stats[2];
+
+#pragma omp parallel for schedule(dynamic, 1)
+  for (int i = 1; i < n_procs; i++) {
+    const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
+    hps::to_string(remote_data[dest_proc_id], send_bufs[i]);
+  }
+
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     const int src_proc_id = shuffled_procs[(shuffled_id + n_procs - i) % n_procs];
     remote_data[dest_proc_id].sync(reducer);
-    hps::to_string(remote_data[dest_proc_id], send_buf);
+    const auto& send_buf = send_bufs[i];
+    auto& recv_buf = recv_bufs[i];
     remote_data[dest_proc_id].clear();
     size_t send_cnt = send_buf.size();
     size_t recv_cnt = 0;
@@ -134,11 +143,26 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
       MPI_Waitall(2, reqs, stats);
       recv_buf.append(recv_buf_char, recv_trunk_cnt);
     }
+  }
 
-    hps::from_string(recv_buf, remote_data[dest_proc_id]);
-    remote_data[dest_proc_id].for_each(node_handler);
+  size_t n_keys = local_data.get_n_keys();
+#pragma omp parallel for schedule(dynamic, 1)
+  for (int i = 1; i < n_procs; i++) {
+    const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
+    hps::from_string(recv_bufs[i], remote_data[dest_proc_id]);
+#pragma omp atomic
+    n_keys += remote_data[dest_proc_id].get_n_keys();
+  }
+
+  local_data.reserve(n_keys);
+
+#pragma omp parallel for schedule(dynamic, 1)
+  for (int i = 1; i < n_procs; i++) {
+    const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
+    remote_data[dest_proc_id].for_each_serial(node_handler);
     remote_data[dest_proc_id].clear();
   }
+
   local_data.sync(reducer);
 }
 
