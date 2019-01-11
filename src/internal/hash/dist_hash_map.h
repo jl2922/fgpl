@@ -104,6 +104,11 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
   MPI_Request reqs[2];
   MPI_Status stats[2];
 
+  for (int i = 1; i < n_procs; i++) {
+    const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
+    remote_data[dest_proc_id].sync(reducer);
+  }
+
 #pragma omp parallel for schedule(dynamic, 1)
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
@@ -112,11 +117,14 @@ void DistHashMap<K, V, H>::sync(const std::function<void(V&, const V&)>& reducer
 
   for (int i = 1; i < n_procs; i++) {
     const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
+    remote_data[dest_proc_id].clear();
+  }
+
+  for (int i = 1; i < n_procs; i++) {
+    const int dest_proc_id = shuffled_procs[(shuffled_id + i) % n_procs];
     const int src_proc_id = shuffled_procs[(shuffled_id + n_procs - i) % n_procs];
-    remote_data[dest_proc_id].sync(reducer);
     const auto& send_buf = send_bufs[i];
     auto& recv_buf = recv_bufs[i];
-    remote_data[dest_proc_id].clear();
     size_t send_cnt = send_buf.size();
     size_t recv_cnt = 0;
     MPI_Irecv(&recv_cnt, 1, MpiType<size_t>::value, src_proc_id, 0, MPI_COMM_WORLD, &reqs[0]);
